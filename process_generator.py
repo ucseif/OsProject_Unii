@@ -56,7 +56,7 @@ def generate_processes(input_file, output_file):
             # كتابة الفاصل الأخير
             f.write(separator + "\n")  # كتابة خط فاصل في نهاية الجدول
 
-        print("Output file has been created successfully!")  # طباعة رسالة تأكيد بأن الملف تم إنشاؤه بنجاح
+        print("Output file has been created successfully!\n")  # طباعة رسالة تأكيد بأن الملف تم إنشاؤه بنجاح
         display_output(output_file)
 
     except Exception as e:
@@ -68,7 +68,7 @@ def display_output(output_file):
     """
     try:
         with open(output_file, 'r') as f:  # فتح ملف الإخراج للقراءة
-            print("\n--- Displaying Output File Content ---\n")
+           # print("\n--- Displaying Output File Content ---\n")
             print(f.read())  # طباعة محتوى الملف بالكامل
     except Exception as e:
         print("Error while displaying output:", e)  # طباعة أي خطأ يحدث أثناء قراءة الملف
