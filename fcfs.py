@@ -1,0 +1,61 @@
+import main  # استيراد العمليات من الملف الرئيسي
+
+def fcfs(processes):
+    processes.sort(key=lambda x: x['Arrival Time'])  # ترتيب العمليات حسب وقت الوصول
+    current_time = 0
+    results = []
+
+    for p in processes:
+        if current_time < p['Arrival Time']:
+            current_time = p['Arrival Time']
+        start_time = current_time
+        completion_time = current_time + p['Burst Time']
+        turnaround_time = completion_time - p['Arrival Time']
+        waiting_time = turnaround_time - p['Burst Time']
+        results.append({
+            'id': p['Process ID'],
+            'arrival_time': p['Arrival Time'],
+            'burst_time': p['Burst Time'],
+            'start_time': start_time,
+            'completion_time': completion_time,
+            'turnaround_time': turnaround_time,
+            'waiting_time': waiting_time,
+            'priority': p.get('Priority', None)  # الأولوية (إن وجدت)
+        })
+        current_time = completion_time
+
+    return results
+
+
+def calculate_metrics(results):
+    total_turnaround_time = sum(r['turnaround_time'] for r in results)
+    total_waiting_time = sum(r['waiting_time'] for r in results)
+    num_processes = len(results)
+
+    avg_turnaround_time = total_turnaround_time / num_processes
+    avg_waiting_time = total_waiting_time / num_processes
+
+    return {
+        'avg_turnaround_time': avg_turnaround_time,
+        'avg_waiting_time': avg_waiting_time
+    }
+
+
+def display_results(algorithm_name, results, metrics):
+    print(f"\nAlgorithm: {algorithm_name}")
+    print(
+        "Process ID | Arrival Time | Burst Time | Start Time | Completion Time | Turnaround Time | Waiting Time | Priority"
+    )
+    print("-" * 120)
+    for result in results:
+        print(
+            f"{result['id']:8}   | {result['arrival_time']:10.2f}   | {result['burst_time']:8.2f}   | {result['start_time']:8.2f}   | {result['completion_time']:13.2f}   | {result['turnaround_time']:13.2f}   | {result['waiting_time']:10.2f}   | {result['priority']:7}"
+        )
+    print("\nAverage Turnaround Time: {:.2f}".format(metrics['avg_turnaround_time']))
+    print("Average Waiting Time: {:.2f}".format(metrics['avg_waiting_time']))
+
+
+if __name__ == "__main__":
+    results = fcfs(main.global_processes)
+    metrics = calculate_metrics(results)
+    display_results("FCFS", results, metrics)
