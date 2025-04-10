@@ -1,91 +1,119 @@
 import main  # استيراد العمليات من الملف الرئيسي
 
-def srtf(processes):
-    # ترتيب العمليات حسب وقت الوصول
-    processes.sort(key=lambda x: x['Arrival Time'])
-    queue = []  # صف العمليات الجاهزة
-    current_time = 0  # الوقت الحالي
-    results = []  # تخزين النتائج
-    remaining_times = {p['Process ID']: p['Burst Time'] for p in processes}  # الأوقات المتبقية لكل عملية
-    completed = set()  # العمليات التي تم إكمالها
-    start_times = {}  # لتخزين وقت بدء التنفيذ لكل عملية
-
+def srtf_algorithm(processes):
+    """تنفيذ خوارزمية SRTF"""
+    if not processes:
+        print("لا توجد عمليات للجدولة!")
+        return []
+    
+    print(f"بدء جدولة {len(processes)} عملية")
+    
+    # نسخة من العمليات للعمل عليها
+    processes = [p.copy() for p in processes]
+    
+    # إضافة حقل للوقت المتبقي
+    for p in processes:
+        p['remaining_time'] = p['Burst Time']
+    
+    current_time = 0
+    completed = []
+    
+    # استمر حتى اكتمال جميع العمليات
     while len(completed) < len(processes):
-        # إضافة العمليات التي وصلت إلى الوقت الحالي إلى الصف
-        for p in processes:
-            if p['Arrival Time'] <= current_time and p['Process ID'] not in completed and p not in queue:
-                queue.append(p)
-
-        # إذا كان الصف فارغًا ولم تُضف أي عمليات جديدة، تحديث الوقت الحالي إلى وقت أقرب عملية
-        if not queue:
-            next_arrival = min([p['Arrival Time'] for p in processes if p['Process ID'] not in completed])
-            current_time = max(current_time, next_arrival)
+        # العمليات المتاحة في الوقت الحالي
+        available = [p for p in processes if p['Arrival Time'] <= current_time and p['remaining_time'] > 0]
+        
+        if not available:
+            # إذا لم تكن هناك عمليات متاحة، انتقل إلى وقت وصول العملية التالية
+            next_arrivals = [p['Arrival Time'] for p in processes if p['remaining_time'] > 0]
+            if next_arrivals:
+                current_time = min(next_arrivals)
+                print(f"لا توجد عمليات متاحة، الانتقال إلى الوقت {current_time}")
+            else:
+                print("جميع العمليات اكتملت أو لا توجد عمليات متبقية")
+                break
             continue
+        
+        # اختيار العملية ذات أقل وقت متبقي
+        current_process = min(available, key=lambda p: p['remaining_time'])
+        print(f"تنفيذ العملية {current_process['Process ID']} في الوقت {current_time}, الوقت المتبقي: {current_process['remaining_time']}")
+        
+        # تحديد وقت البدء إذا كانت هذه أول مرة تنفذ فيها العملية
+        if 'start_time' not in current_process:
+            current_process['start_time'] = current_time
+        
+        # تنفيذ العملية لوحدة زمنية واحدة
+        current_time += 1
+        current_process['remaining_time'] -= 1
+        
+        # التحقق من اكتمال العملية
+        if current_process['remaining_time'] == 0:
+            completion_time = current_time
+            turnaround_time = completion_time - current_process['Arrival Time']
+            waiting_time = turnaround_time - current_process['Burst Time']
+            
+            completed.append({
+                'id': current_process['Process ID'],
+                'arrival_time': current_process['Arrival Time'],
+                'burst_time': current_process['Burst Time'],
+                'start_time': current_process['start_time'],
+                'completion_time': completion_time,
+                'turnaround_time': turnaround_time,
+                'waiting_time': waiting_time,
+                'priority': current_process.get('Priority')
+            })
+            print(f"اكتملت العملية {current_process['Process ID']} في الوقت {completion_time}")
+    
+    print(f"عدد العمليات المكتملة: {len(completed)}")
+    
+    # ترتيب النتائج حسب وقت الإكمال
+    return sorted(completed, key=lambda p: p['completion_time'])
 
-        # ترتيب الصف حسب الأوقات المتبقية (Shortest Remaining Time First)
-        queue.sort(key=lambda x: remaining_times[x['Process ID']])
-        if queue:
-            p = queue[0]  # اختيار العملية الأولى في الصف
-
-            # تسجيل وقت بدء التنفيذ إذا لم يكن مسجلًا بالفعل
-            if p['Process ID'] not in start_times:
-                start_times[p['Process ID']] = current_time
-
-            # تحديث الوقت المتبقي للعملية
-            remaining_times[p['Process ID']] -= 1
-            current_time += 1
-
-            # إذا انتهت العملية
-            if remaining_times[p['Process ID']] == 0:
-                completed.add(p['Process ID'])
-                completion_time = current_time
-                turnaround_time = completion_time - p['Arrival Time']
-                waiting_time = turnaround_time - p['Burst Time']
-                results.append({
-                    'id': p['Process ID'],
-                    'arrival_time': p['Arrival Time'],
-                    'burst_time': p['Burst Time'],
-                    'start_time': start_times[p['Process ID']],
-                    'completion_time': completion_time,
-                    'turnaround_time': turnaround_time,
-                    'waiting_time': waiting_time,
-                    'priority': p.get('Priority', None)  # الأولوية (إن وجدت)
-                })
-                queue.pop(0)  # إزالة العملية من الصف بعد اكتمالها
-
-    return results
-
-
-def calculate_metrics(results):
-    total_turnaround_time = sum(r['turnaround_time'] for r in results)
-    total_waiting_time = sum(r['waiting_time'] for r in results)
-    num_processes = len(results)
-
-    avg_turnaround_time = total_turnaround_time / num_processes
-    avg_waiting_time = total_waiting_time / num_processes
-
+def calculate_average_metrics(results):
+    """حساب متوسط وقت الانتظار ووقت الدوران"""
+    if not results:
+        return {'avg_turnaround_time': 0, 'avg_waiting_time': 0}
+        
+    avg_turnaround = sum(p['turnaround_time'] for p in results) / len(results)
+    avg_waiting = sum(p['waiting_time'] for p in results) / len(results)
+    
     return {
-        'avg_turnaround_time': avg_turnaround_time,
-        'avg_waiting_time': avg_waiting_time
+        'avg_turnaround_time': avg_turnaround,
+        'avg_waiting_time': avg_waiting
     }
 
-
-def display_results(algorithm_name, results, metrics):
-    print(f"\nAlgorithm: {algorithm_name}")
-    print(
-        "Process ID | Arrival Time | Burst Time | Start Time | Completion Time | Turnaround Time | Waiting Time | Priority"
-    )
+def display_results(results, metrics):
+    """عرض النتائج بتنسيق مناسب"""
+    if not results:
+        print("لا توجد نتائج للعرض!")
+        return
+        
+    print("\nAlgorithm: SRTF (Shortest Remaining Time First)")
     print("-" * 120)
-    for result in results:
-        print(
-            f"{result['id']:8} | {result['arrival_time']:12.2f} | {result['burst_time']:9.2f} | {result['start_time']:10.2f} | {result['completion_time']:15.2f} | {result['turnaround_time']:15.2f} | {result['waiting_time']:12.2f} | {result['priority']}"
-        )
-    print("\nAverage Turnaround Time: {:.2f}".format(metrics['avg_turnaround_time']))
-    print("Average Waiting Time: {:.2f}".format(metrics['avg_waiting_time']))
-
+    print("Process ID | Arrival Time | Burst Time | Start Time | Completion Time | Turnaround Time | Waiting Time | Priority")
+    print("-" * 120)
+    
+    for p in results:
+        print(f"{p['id']:10} | {p['arrival_time']:11.2f} | {p['burst_time']:9.2f} | "
+              f"{p['start_time']:10.2f} | {p['completion_time']:15.2f} | "
+              f"{p['turnaround_time']:15.2f} | {p['waiting_time']:11.2f} | {p['priority']:8}")
+    
+    print("-" * 120)
+    print(f"\nAverage Turnaround Time: {metrics['avg_turnaround_time']:.2f}")
+    print(f"Average Waiting Time: {metrics['avg_waiting_time']:.2f}")
 
 if __name__ == "__main__":
-    # استدعاء العمليات من الملف الرئيسي
-    results = srtf(main.global_processes)
-    metrics = calculate_metrics(results)
-    display_results("SRTF", results, metrics)
+    # استخدام العمليات من main.global_processes
+    processes = main.global_processes
+    
+    if processes:
+        # تنفيذ خوارزمية SRTF
+        results = srtf_algorithm(processes)
+        
+        # حساب المقاييس
+        metrics = calculate_average_metrics(results)
+        
+        # عرض النتائج
+        display_results(results, metrics)
+    else:
+        print("لم يتم العثور على عمليات صالحة في الملف")

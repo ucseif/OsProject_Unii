@@ -43,6 +43,7 @@ def calculate_metrics(results):
 
 def display_results(algorithm_name, results, metrics):
     print(f"\nAlgorithm: {algorithm_name}")
+    print("-" * 120)
     print(
         "Process ID | Arrival Time | Burst Time | Start Time | Completion Time | Turnaround Time | Waiting Time | Priority"
     )
@@ -51,11 +52,23 @@ def display_results(algorithm_name, results, metrics):
         print(
             f"{result['id']:8}   | {result['arrival_time']:10.2f}   | {result['burst_time']:8.2f}   | {result['start_time']:8.2f}   | {result['completion_time']:13.2f}   | {result['turnaround_time']:13.2f}   | {result['waiting_time']:10.2f}   | {result['priority']:7}"
         )
+    print("-" * 120)
     print("\nAverage Turnaround Time: {:.2f}".format(metrics['avg_turnaround_time']))
     print("Average Waiting Time: {:.2f}".format(metrics['avg_waiting_time']))
 
+
+# if __name__ == "__main__":
+#     results = hpf(main.global_processes)
+#     metrics = calculate_metrics(results)
+#     display_results("HPF", results, metrics)
+
+# ... existing code ...
 
 if __name__ == "__main__":
     results = hpf(main.global_processes)
     metrics = calculate_metrics(results)
     display_results("HPF", results, metrics)
+    
+    # Append metrics to the file for graph generation
+    with open("d:\\filesOfPyCharm\\OsProject_Unii\\metrics.txt", "a") as f:
+        f.write(f"HPF,{metrics['avg_waiting_time']},{metrics['avg_turnaround_time']}\n")

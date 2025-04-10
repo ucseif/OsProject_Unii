@@ -65,19 +65,32 @@ def calculate_metrics(results):
 
 def display_results(algorithm_name, results, metrics):
     print(f"\nAlgorithm: {algorithm_name}")
+    print("-" * 127)
     print(
         "Process ID | Quantum | Arrival Time | Burst Time | Start Time | Completion Time | Turnaround Time | Waiting Time | Priority"
     )
-    print("-" * 150)
+    print("-" * 127)
     for result in results:
         print(
             f"{result['id']:8}   | {result['quantum_used']:5}   | {result['arrival_time']:10.2f}   | {result['burst_time']:8.2f}   | {result['start_time']:8.2f}   | {result['completion_time']:13.2f}   | {result['turnaround_time']:13.2f}   | {result['waiting_time']:10.2f}   | {result['priority']:7}"
         )
+    print("-" * 127)
     print("\nAverage Turnaround Time: {:.2f}".format(metrics['avg_turnaround_time']))
     print("Average Waiting Time: {:.2f}".format(metrics['avg_waiting_time']))
 
+
+# if __name__ == "__main__":
+#     results = round_robin(main.global_processes)
+#     metrics = calculate_metrics(results)
+#     display_results("Round Robin", results, metrics)
+
+# ... existing code ...
 
 if __name__ == "__main__":
     results = round_robin(main.global_processes)
     metrics = calculate_metrics(results)
     display_results("Round Robin", results, metrics)
+    
+    # Append metrics to the file for graph generation
+    with open("d:\\filesOfPyCharm\\OsProject_Unii\\metrics.txt", "a") as f:
+        f.write(f"Round Robin,{metrics['avg_waiting_time']},{metrics['avg_turnaround_time']}\n")
