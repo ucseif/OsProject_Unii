@@ -18,14 +18,14 @@ def generate_graphs():
 
     # Average Waiting Time Comparison
     plt.subplot(1, 2, 1)
-    plt.bar(algorithms, avg_waiting_times, color=['#FF5733', '#33FF57', '#3357FF', '#FF33A1'])  # New color scheme
+    plt.bar(algorithms, avg_waiting_times, color=['#2E7D32', '#00ACC1', '#000000', '#CDDC39'])  # New color scheme FF5733 , 33FF57 , 3357FF , FF33A1
     plt.title('Avg Waiting Time Comparison', fontsize=14, fontweight='bold')  # Bold title
     plt.ylabel('Time Units', fontsize=12)
     plt.xticks(rotation=15)  # Rotate x-axis labels
 
     # Average Turnaround Time Comparison
     plt.subplot(1, 2, 2)
-    plt.bar(algorithms, avg_turnaround_times, color=['#FF5733', '#33FF57', '#3357FF', '#FF33A1'])  # New color scheme
+    plt.bar(algorithms, avg_turnaround_times, color=['#2E7D32', '#00ACC1', '#000000', '#CDDC39'])  # New color scheme
     plt.title('Avg Turnaround Time Comparison', fontsize=14, fontweight='bold')  # Bold title
     plt.ylabel('Time Units', fontsize=12)
     plt.xticks(rotation=15)  # Rotate x-axis labels
@@ -53,14 +53,14 @@ def generate_graphs():
 
     # Average Waiting Time Comparison
     plt.subplot(1, 2, 1)
-    plt.bar(algorithms, avg_waiting_times, color=['#FF5733', '#33FF57', '#3357FF', '#FF33A1'])  # New color scheme
-    plt.title('Avg Waiting Time Comparison', fontsize=14, fontweight='bold')  # Bold title
+    plt.bar(algorithms, avg_waiting_times, color=['#2E7D32', '#00ACC1', '#000000', '#CDDC39'])  # New color scheme
+    plt.title('Avg Waiting Time Comparison', fontsize=14, fontweight='bold',)  # Bold title
     plt.ylabel('Time Units', fontsize=12)
     plt.xticks(rotation=15)  # Rotate x-axis labels
 
     # Average Turnaround Time Comparison
     plt.subplot(1, 2, 2)
-    plt.bar(algorithms, avg_turnaround_times, color=['#FF5733', '#33FF57', '#3357FF', '#FF33A1'])  # New color scheme
+    plt.bar(algorithms, avg_turnaround_times, color=['#2E7D32', '#00ACC1', '#000000', '#CDDC39'])  # New color scheme
     plt.title('Avg Turnaround Time Comparison', fontsize=14, fontweight='bold')  # Bold title
     plt.ylabel('Time Units', fontsize=12)
     plt.xticks(rotation=15)  # Rotate x-axis labels
