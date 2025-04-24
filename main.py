@@ -1,27 +1,25 @@
 import pandas as pd
 
-# قراءة الملف الإخراج من Process Generator
+# Load the process data generated from Process Generator
 try:
-    # تجاهل السطور الأولى (التعليقات والفواصل)
+    # Read the output.txt file, skip headers and ignore comment lines
     df = pd.read_csv('output.txt', sep='|', skiprows=4, comment='-', engine='python')
 
-    # إزالة المسافات الزائدة من أسماء الأعمدة
+    # Clean column names from extra spaces
     df.columns = df.columns.str.strip()
 
-    # التحقق من الأعمدة
-    #print("Columns in DataFrame:", df.columns)
-
-    # تحويل الأعمدة إلى أنواعها الصحيحة
+    # Convert columns to appropriate data types
     df['Process ID'] = df['Process ID'].astype(int)
     df['Arrival Time'] = df['Arrival Time'].astype(float)
     df['Burst Time'] = df['Burst Time'].astype(float)
     df['Priority'] = df['Priority'].astype(int)
 
-    # تحويل البيانات إلى قائمة من القوائم
+    # Convert the DataFrame to a list of dictionaries
     processes = df.to_dict('records')
 
-    # حفظ العمليات في متغير عالمي
+    # Store the process list in a global variable
     global_processes = processes
 
 except Exception as e:
+    # Print error message if reading fails
     print("Error while reading the file:", e)

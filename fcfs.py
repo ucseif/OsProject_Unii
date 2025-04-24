@@ -1,7 +1,8 @@
-import main  # استيراد العمليات من الملف الرئيسي
+import main
+from pathlib import Path
 
 def fcfs(processes):
-    processes.sort(key=lambda x: x['Arrival Time'])  # ترتيب العمليات حسب وقت الوصول
+    processes.sort(key=lambda x: x['Arrival Time'])
     current_time = 0
     results = []
 
@@ -20,7 +21,7 @@ def fcfs(processes):
             'completion_time': completion_time,
             'turnaround_time': turnaround_time,
             'waiting_time': waiting_time,
-            'priority': p.get('Priority', None)  # الأولوية (إن وجدت)
+            'priority': p.get('Priority', None)
         })
         current_time = completion_time
 
@@ -56,19 +57,14 @@ def display_results(algorithm_name, results, metrics):
     print("\nAverage Turnaround Time: {:.2f}".format(metrics['avg_turnaround_time']))
     print("Average Waiting Time: {:.2f}".format(metrics['avg_waiting_time']))
 
-
-# if __name__ == "__main__":
-#     results = fcfs(main.global_processes)
-#     metrics = calculate_metrics(results)
-#     display_results("FCFS", results, metrics)
-
-# ... existing code ...
-
 if __name__ == "__main__":
     results = fcfs(main.global_processes)
     metrics = calculate_metrics(results)
     display_results("FCFS", results, metrics)
-    
-    # Append metrics to the file for graph generation
-    with open("d:\\filesOfPyCharm\\OsProject_Unii\\metrics.txt", "a") as f:
+
+    # مسار الملف النسبي
+    metrics_file = Path(__file__).parent / "metrics.txt"
+
+    # Append metrics to the file
+    with open(metrics_file, "a") as f:
         f.write(f"FCFS,{metrics['avg_waiting_time']},{metrics['avg_turnaround_time']}\n")

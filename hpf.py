@@ -1,7 +1,10 @@
-import main  # استيراد العمليات من الملف الرئيسي
+import main
+from pathlib import Path
 
+
+# Sort processes by priority (highest first), then by arrival time
 def hpf(processes):
-    processes.sort(key=lambda x: (-x['Priority'], x['Arrival Time']))  # ترتيب العمليات حسب الأولوية ثم وقت الوصول
+    processes.sort(key=lambda x: (-x['Priority'], x['Arrival Time']))
     current_time = 0
     results = []
 
@@ -20,12 +23,13 @@ def hpf(processes):
             'completion_time': completion_time,
             'turnaround_time': turnaround_time,
             'waiting_time': waiting_time,
-            'priority': p['Priority']  # الأولوية
+            'priority': p['Priority']
         })
         current_time = completion_time
 
     return results
 
+# Calculate average turnaround and waiting time
 
 def calculate_metrics(results):
     total_turnaround_time = sum(r['turnaround_time'] for r in results)
@@ -40,6 +44,7 @@ def calculate_metrics(results):
         'avg_waiting_time': avg_waiting_time
     }
 
+# Display the results in a clean formatted table
 
 def display_results(algorithm_name, results, metrics):
     print(f"\nAlgorithm: {algorithm_name}")
@@ -56,19 +61,15 @@ def display_results(algorithm_name, results, metrics):
     print("\nAverage Turnaround Time: {:.2f}".format(metrics['avg_turnaround_time']))
     print("Average Waiting Time: {:.2f}".format(metrics['avg_waiting_time']))
 
-
-# if __name__ == "__main__":
-#     results = hpf(main.global_processes)
-#     metrics = calculate_metrics(results)
-#     display_results("HPF", results, metrics)
-
-# ... existing code ...
+# Main execution: run HPF algorithm and save the metrics to a file
 
 if __name__ == "__main__":
     results = hpf(main.global_processes)
     metrics = calculate_metrics(results)
     display_results("HPF", results, metrics)
-    
-    # Append metrics to the file for graph generation
-    with open("d:\\filesOfPyCharm\\OsProject_Unii\\metrics.txt", "a") as f:
+
+    metrics_file = Path(__file__).parent / "metrics.txt"
+
+    # Append metrics to the file
+    with open(metrics_file, "a") as f:
         f.write(f"HPF,{metrics['avg_waiting_time']},{metrics['avg_turnaround_time']}\n")

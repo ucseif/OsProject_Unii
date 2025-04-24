@@ -1,28 +1,26 @@
-import main  # استيراد العمليات من الملف الرئيسي
+import main
+from pathlib import Path
 
 def round_robin(processes, time_quantum=4):
     queue = processes[:]
     current_time = 0
     results = []
     remaining_times = {p['Process ID']: p['Burst Time'] for p in processes}
-    start_times = {}  # لتخزين وقت بدء التنفيذ لكل عملية
-    quantum_used = {}  # لتخزين قيمة Quantum المستخدمة لكل عملية
+    start_times = {}
+    quantum_used = {}
 
     while queue:
         p = queue.pop(0)
         if current_time < p['Arrival Time']:
             current_time = p['Arrival Time']
 
-        # تسجيل وقت بدء التنفيذ إذا لم يكن مسجلًا بالفعل
         if p['Process ID'] not in start_times:
             start_times[p['Process ID']] = current_time
 
-        # تحديد الوقت الذي سيتم تنفيذه (أقل قيمة بين Quantum والوقت المتبقي)
         execution_time = min(time_quantum, remaining_times[p['Process ID']])
         remaining_times[p['Process ID']] -= execution_time
         current_time += execution_time
 
-        # تخزين قيمة Quantum المستخدمة لهذه العملية
         if p['Process ID'] not in quantum_used:
             quantum_used[p['Process ID']] = execution_time
         else:
@@ -40,8 +38,8 @@ def round_robin(processes, time_quantum=4):
                 'completion_time': completion_time,
                 'turnaround_time': turnaround_time,
                 'waiting_time': waiting_time,
-                'priority': p.get('Priority', None),  # الأولوية (إن وجدت)
-                'quantum_used': quantum_used[p['Process ID']]  # قيمة Quantum المستخدمة
+                'priority': p.get('Priority', None),
+                'quantum_used': quantum_used[p['Process ID']]
             })
         else:
             queue.append(p)
@@ -79,18 +77,13 @@ def display_results(algorithm_name, results, metrics):
     print("Average Waiting Time: {:.2f}".format(metrics['avg_waiting_time']))
 
 
-# if __name__ == "__main__":
-#     results = round_robin(main.global_processes)
-#     metrics = calculate_metrics(results)
-#     display_results("Round Robin", results, metrics)
-
-# ... existing code ...
-
 if __name__ == "__main__":
     results = round_robin(main.global_processes)
     metrics = calculate_metrics(results)
     display_results("Round Robin", results, metrics)
-    
-    # Append metrics to the file for graph generation
-    with open("d:\\filesOfPyCharm\\OsProject_Unii\\metrics.txt", "a") as f:
+
+    metrics_file = Path(__file__).parent / "metrics.txt"
+
+    # Append metrics to the file
+    with open(metrics_file, "a") as f:
         f.write(f"Round Robin,{metrics['avg_waiting_time']},{metrics['avg_turnaround_time']}\n")
