@@ -1,11 +1,13 @@
 import main
 from pathlib import Path
 
+# FCFS: First-Come, First-Served Scheduling Algorithm
 def fcfs(processes):
     processes.sort(key=lambda x: x['Arrival Time'])
     current_time = 0
     results = []
 
+    # Process each process based on the sorted order
     for p in processes:
         if current_time < p['Arrival Time']:
             current_time = p['Arrival Time']
@@ -28,11 +30,13 @@ def fcfs(processes):
     return results
 
 
+# Calculate average metrics: Turnaround Time and Waiting Time
 def calculate_metrics(results):
     total_turnaround_time = sum(r['turnaround_time'] for r in results)
     total_waiting_time = sum(r['waiting_time'] for r in results)
     num_processes = len(results)
 
+    # Calculate the averages
     avg_turnaround_time = total_turnaround_time / num_processes
     avg_waiting_time = total_waiting_time / num_processes
 
@@ -41,7 +45,7 @@ def calculate_metrics(results):
         'avg_waiting_time': avg_waiting_time
     }
 
-
+# Display results in a clean formatted table
 def display_results(algorithm_name, results, metrics):
     print(f"\nAlgorithm: {algorithm_name}")
     print("-" * 120)
@@ -57,14 +61,14 @@ def display_results(algorithm_name, results, metrics):
     print("\nAverage Turnaround Time: {:.2f}".format(metrics['avg_turnaround_time']))
     print("Average Waiting Time: {:.2f}".format(metrics['avg_waiting_time']))
 
+# Main execution
 if __name__ == "__main__":
     results = fcfs(main.global_processes)
     metrics = calculate_metrics(results)
     display_results("FCFS", results, metrics)
 
-    # مسار الملف النسبي
+    # Save metrics to a file
     metrics_file = Path(__file__).parent / "metrics.txt"
 
-    # Append metrics to the file
     with open(metrics_file, "a") as f:
-        f.write(f"FCFS,{metrics['avg_waiting_time']},{metrics['avg_turnaround_time']}\n")
+        f.write(f"FCFS,{metrics['avg_waiting_time']},{metrics['avg_turnaround_time']}\n")  # Append metrics to the file

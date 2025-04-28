@@ -1,118 +1,112 @@
-import main  # استيراد العمليات من الملف الرئيسي
+import pandas as pd
+import heapq
 
+# Function to implement SRTF Scheduling Algorithm
+def srtf(processes):
+    processes.sort(key=lambda x: x['Arrival Time'])  # Sort by Arrival Time initially
 
-def srtf_algorithm(processes):
-    """
-    Shortest Remaining Time First (SRTF) - Preemptive Scheduling
-    الجدولة باستخدام أقصر وقت تنفيذ متبقٍ، مع إمكانية الإزاحة (Preemptive)
-    """
     n = len(processes)
-    if n == 0:
-        print("لا توجد عمليات متاحة.")
-        return []
-
-    # تجهيز العمليات مع الحقول المطلوبة
-    for p in processes:
-        p['remaining_time'] = p['Burst Time']
-        p['is_completed'] = False
-
-    current_time = 0
+    time = 0
     completed = 0
+
+    remaining_bt = {p['Process ID']: p['Burst Time'] for p in processes}
+    arrival_dict = {p['Process ID']: p['Arrival Time'] for p in processes}
+    burst_dict = {p['Process ID']: p['Burst Time'] for p in processes}
+
+    start_time = {}
+    completion_time = {}
+    turnaround_time = {}
+    waiting_time = {}
+    ready_queue = []
+    visited = set()
+
     results = []
-    start_times = {}
 
     while completed < n:
-        # العمليات المتاحة حاليًا
-        available = [p for p in processes if p['Arrival Time'] <= current_time and not p['is_completed']]
+        # Add processes to ready queue based on arrival time
+        for p in processes:
+            pid = p['Process ID']
+            if p['Arrival Time'] <= time and pid not in visited and remaining_bt[pid] > 0:
+                heapq.heappush(ready_queue, (remaining_bt[pid], p['Arrival Time'], pid, p))
+                visited.add(pid)
 
-        # تصفية العمليات التي ما زال لديها وقت متبقي فقط
-        available = [p for p in available if p['remaining_time'] > 0]
+        if ready_queue:
+            rt, at, pid, p = heapq.heappop(ready_queue)
 
-        if not available:
-            current_time += 1  # المعالج في حالة خمول، نزيد الوقت
-            continue
+            if pid not in start_time:
+                start_time[pid] = time
 
-        # اختيار العملية ذات أقل وقت متبقي
-        current_process = min(available, key=lambda p: p['remaining_time'])
+            remaining_bt[pid] -= 1
+            time += 1
 
-        pid = current_process['Process ID']
+            if remaining_bt[pid] > 0:
+                heapq.heappush(ready_queue, (remaining_bt[pid], at, pid, p))
+            else:
+                completed += 1
+                completion_time[pid] = time
+                tat = time - arrival_dict[pid]
+                wt = tat - burst_dict[pid]
 
-        # تسجيل وقت البدء لأول مرة فقط
-        if pid not in start_times:
-            start_times[pid] = current_time
+                turnaround_time[pid] = tat
+                waiting_time[pid] = wt
 
-        # تنفيذ وحدة زمنية واحدة
-        current_process['remaining_time'] -= 1
-        current_time += 1
+                results.append({
+                    'id': pid,
+                    'arrival_time': arrival_dict[pid],
+                    'burst_time': burst_dict[pid],
+                    'start_time': start_time[pid],
+                    'completion_time': completion_time[pid],
+                    'turnaround_time': tat,
+                    'waiting_time': wt,
+                    'priority': p.get('Priority', None)
+                })
+        else:
+            time += 1
 
-        # عند الانتهاء من العملية
-        if current_process['remaining_time'] == 0:
-            completed += 1
-            completion_time = current_time
-            turnaround_time = completion_time - current_process['Arrival Time']
-            waiting_time = turnaround_time - current_process['Burst Time']
+    return results
 
-            # إضافة النتائج
-            results.append({
-                'id': pid,
-                'arrival_time': current_process['Arrival Time'],
-                'burst_time': current_process['Burst Time'],
-                'start_time': start_times[pid],
-                'completion_time': completion_time,
-                'turnaround_time': turnaround_time,
-                'waiting_time': waiting_time,
-                'priority': current_process.get('Priority')
-            })
-
-            current_process['is_completed'] = True
-
-    # ترتيب النتائج حسب وقت الإكمال
-    return sorted(results, key=lambda p: p['completion_time'])
-
-
-def calculate_average_metrics(results):
-    """حساب المتوسطات لوقت الانتظار ووقت الدوران"""
+# Function to calculate metrics
+def calculate_metrics(results):
+    total_tat = sum(r['turnaround_time'] for r in results)
+    total_wt = sum(r['waiting_time'] for r in results)
     n = len(results)
-    if n == 0:
-        return {'avg_turnaround_time': 0, 'avg_waiting_time': 0}
-
-    total_tat = sum(p['turnaround_time'] for p in results)
-    total_wt = sum(p['waiting_time'] for p in results)
-
     return {
         'avg_turnaround_time': total_tat / n,
         'avg_waiting_time': total_wt / n
     }
 
-
-def display_results(results, metrics):
-    """عرض النتائج بشكل منسق"""
-    print("\nAlgorithm: SRTF (Shortest Remaining Time First)")
+# Function to display the results
+def display_results(algorithm_name, results, metrics):
+    print(f"\nAlgorithm: {algorithm_name}")
     print("-" * 120)
-    print(
-        "Process ID | Arrival Time | Burst Time | Start Time | Completion Time | Turnaround Time | Waiting Time | Priority")
+    print("Process ID | Arrival Time | Burst Time | Start Time | Completion Time | Turnaround Time | Waiting Time | Priority")
     print("-" * 120)
-
-    for p in results:
-        print(f"{p['id']:10} | {p['arrival_time']:12.2f} | {p['burst_time']:10.2f} | "
-              f"{p['start_time']:10.2f} | {p['completion_time']:15.2f} | "
-              f"{p['turnaround_time']:15.2f} | {p['waiting_time']:12.2f} | {str(p['priority']):8}")
-
+    for result in results:
+        print(
+            f"{result['id']:8}   | {result['arrival_time']:10.2f}   | {result['burst_time']:8.2f}   | {result['start_time']:8.2f}   | {result['completion_time']:13.2f}   | {result['turnaround_time']:13.2f}   | {result['waiting_time']:10.2f}   | {result['priority']:7}")
     print("-" * 120)
-    print(f"\nAverage Turnaround Time: {metrics['avg_turnaround_time']:.2f}")
-    print(f"Average Waiting Time: {metrics['avg_waiting_time']:.2f}")
+    print("\nAverage Turnaround Time: {:.2f}".format(metrics['avg_turnaround_time']))
+    print("Average Waiting Time: {:.2f}".format(metrics['avg_waiting_time']))
 
-
+# Main block to load data and run SRTF
 if __name__ == "__main__":
-    processes = main.global_processes
+    try:
+        df = pd.read_csv('output.txt', sep='|', skiprows=4, comment='-', engine='python')
+        df.columns = df.columns.str.strip()
+        df['Process ID'] = df['Process ID'].astype(int)
+        df['Arrival Time'] = df['Arrival Time'].astype(float)
+        df['Burst Time'] = df['Burst Time'].astype(float)
+        df['Priority'] = df['Priority'].astype(int)
 
-    if processes:
-        results = srtf_algorithm(processes)
-        metrics = calculate_average_metrics(results)
-        display_results(results, metrics)
+        processes = df.to_dict('records')
 
-        # حفظ النتائج في ملف لرسومات الجرافيك
-        with open("d:\\filesOfPyCharm\\OsProject_Unii\\metrics.txt", "a") as f:
+        results = srtf(processes)
+        metrics = calculate_metrics(results)
+        display_results("SRTF", results, metrics)
+
+        # Save the metrics to file for graphing
+        with open("metrics.txt", "a") as f:
             f.write(f"SRTF,{metrics['avg_waiting_time']},{metrics['avg_turnaround_time']}\n")
-    else:
-        print("⚠️ لا توجد عمليات صالحة للجدولة.")
+
+    except Exception as e:
+        print("❌ Error:", e)
