@@ -27,10 +27,11 @@ def srtf(processes):
         for p in processes:
             pid = p['Process ID']
             if p['Arrival Time'] <= time and pid not in visited and remaining_bt[pid] > 0:
-                heapq.heappush(ready_queue, (remaining_bt[pid], p['Arrival Time'], pid, p))
+                heapq.heappush(ready_queue, (remaining_bt[pid], p['Arrival Time'], pid, p))  # Add based on remaining burst time
                 visited.add(pid)
 
         if ready_queue:
+            # Always process the one with the shortest remaining time
             rt, at, pid, p = heapq.heappop(ready_queue)
 
             if pid not in start_time:
@@ -39,6 +40,7 @@ def srtf(processes):
             remaining_bt[pid] -= 1
             time += 1
 
+            # Reorder ready_queue by remaining burst time
             if remaining_bt[pid] > 0:
                 heapq.heappush(ready_queue, (remaining_bt[pid], at, pid, p))
             else:
